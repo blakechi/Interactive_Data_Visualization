@@ -31,7 +31,10 @@ def summary_window(id, text, component_theme):
         id=id,
         children=[
             html.H5(
-                children=["Summary"]),
+                children=["Summary"],
+                style={
+                    "margin-left": "5px",
+                }),
             html.Pre(
                 id='group_summary', 
                 style={
@@ -45,9 +48,26 @@ def summary_window(id, text, component_theme):
             ),
         ],
         style={
-            "padding": "0",
             'background-color': component_theme['bg_color'], 
             'color': component_theme['text_color']
         }
     )
 
+def word_cloud(id, component_theme):
+    return html.Div(
+        children=[
+            html.Img(
+                id=id,
+                style={
+                    'background-color': component_theme['bg_color'], 
+                    'color': component_theme['text_color']
+                }
+            )
+        ],
+        style={
+            "padding": "0",
+            "border": f"5px solid {component_theme['bg_color']}",
+            'background-color': component_theme['bg_color'], 
+            'color': component_theme['text_color']
+        }
+    )

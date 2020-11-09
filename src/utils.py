@@ -1,7 +1,9 @@
+import base64
+
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
-
+from wordcloud import WordCloud
 
 def get_cleaned_dataset():
     df = pd.read_csv(
@@ -58,7 +60,12 @@ def get_map_fig(df, component_theme):
             "weaptype1_txt": "Weapon",
             "attacktype1_txt": "Attack Type",
         },
-        custom_data=['summary'],
+        custom_data=[
+            "summary",
+            "nhostkid",
+            "nreleased",
+            "ransompaid"
+        ],
         scope="world",
         height=500,
         title=None
@@ -94,8 +101,10 @@ def get_map_fig(df, component_theme):
 
 def get_trending_line(df, y_label, component_theme, **kwargs):
     fig = px.line(
-        df, x='iyear', y='total', 
-        color='gname', 
+        df,
+        x='iyear',
+        y='total', 
+        color=df['gname'], 
         labels={
             'gname': 'Group',
             'iyear': 'Year',
@@ -120,8 +129,8 @@ def get_trending_line(df, y_label, component_theme, **kwargs):
     )
     fig.update_layout(
         margin={'l': 0, 'r': 0, 't': 0, 'b': 0},
-        plot_bgcolor=component_theme["bg_color"],
-        paper_bgcolor=component_theme["bg_color"],
+        plot_bgcolor=component_theme["legend_bg_color"],
+        paper_bgcolor=component_theme["legend_bg_color"],
         font={"color": component_theme["text_color"]},
         showlegend=True,  
         hovermode="x",
@@ -192,3 +201,63 @@ def get_horizontal_bar(df, component_theme, **kwargs):
         )
 
     return fig
+
+def selected_scatter_plot(df, component_theme, **kwargs):
+    fig = px.scatter(
+        df, 
+        x="nhostkid", 
+        y="nreleased", 
+        size=df["ransompaid"],
+        height=200
+    )
+    fig.update_traces(
+        # selectedpoints=selectedpoints, 
+        mode='markers',
+        marker={ 'color': '#0066ff' },
+        hovertemplate=None,
+    )
+
+    fig.update_xaxes(
+        title="Number of Hosted Kids", 
+        zeroline=False,
+        showticklabels=False, 
+        showgrid=False,
+        showline=True,
+        linewidth=1, 
+        linecolor='white',
+        visible=True, 
+        matches=None
+    )
+    fig.update_yaxes(
+        title="Number of Released Kids", 
+        zeroline=False,
+        showticklabels=False, 
+        showgrid=False,
+        showline=True,
+        linewidth=1, 
+        linecolor='white',
+        visible=True, 
+    )
+    fig.update_layout(
+        margin={'l': 10, 'r': 10, 't': 10, 'b': 10},
+        plot_bgcolor=component_theme["bg_color"],
+        paper_bgcolor=component_theme["bg_color"],
+        font={"color": component_theme["text_color"]},
+        hovermode="x",
+        hoverlabel={'font_size': 12},
+        showlegend=False,  
+    )
+
+    return fig
+
+def make_word_cloud_image(text):
+    word_list = text.split()
+
+    word_freq = []
+    for w in word_list:
+        word_freq.append(word_list.count(w))
+    data = {word: times for word, times in zip(word_list, word_freq)}
+    wc = WordCloud(background_color='black', width=268, height=268)
+    wc.fit_words(data)
+
+    return wc.to_image()

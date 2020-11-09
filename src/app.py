@@ -1,4 +1,6 @@
 import json
+import base64
+from io import BytesIO
 
 import dash
 import dash_core_components as dcc
@@ -14,6 +16,13 @@ import utils
 
 NUMTOPGROUP = 5
 NUMCASUALITIES = 30
+MEANLESSLIST = [
+    "is", "are", "was", "were", "a", "an", "the",
+    "Is", "Are", "Was", "Were", "A", "An", "The",
+    "in", "at", "on", "of", "for", "to",
+    "In", "At", "On", "Of", "For", "To",
+    ":", ","
+]
 
 df = utils.get_cleaned_dataset()
 
@@ -47,6 +56,7 @@ main_col_1_layout = [
         id='buttom_row',
         style={
             'margin-top': 20,
+            "position": "relative",
         },
         children=[
             html.Div(
@@ -60,6 +70,8 @@ main_col_1_layout = [
                 style={
                     'display': 'inline-block', 
                     'width': '91%',
+                    'background-color': component_theme['bg_color'],
+
                 }
             ),
             html.Div(
@@ -75,12 +87,49 @@ main_col_1_layout = [
                     'width': '9%',
                 },
             ),
+            dcc.RadioItems(
+                id='trending_line_radio',
+                options=[
+                    {'label': 'Attacks', 'value': ''},
+                    {'label': 'Casualties', 'value': 'Casualties'},
+                ],
+                value='',
+                labelStyle={'display': 'inline-block'},
+                style={
+                    # 'display': 'inline_block',
+                    "position": "absolute",
+                    "left": "0px",
+                    "top": "180px",
+                    "width": "100%",
+                    'background-color': component_theme['bg_color'], 
+                    'color': component_theme['text_color'],
+                }
+            ),
         ]
     )
 ]
 
 main_col_2_layout = [
-    components.summary_window("summary", "test", component_theme),
+    html.Div(
+        id='summary_container',
+        children=[
+        components.summary_window("summary", "test", component_theme),
+        components.word_cloud("word_cloud_image", component_theme),
+        ],
+        style={
+            "height": "539px"
+        }
+    ),
+    html.Div(
+        id='selected_groups_scatter_plot_container',
+        children=dcc.Graph(
+            id='selected_groups_scatter_plot',
+            config={ 'displayModeBar': False }
+        ),
+        style={
+            "margin-top": "21px",    # ?????
+        }
+    ),
 ]
 
 app.layout = html.Div(
@@ -92,6 +141,9 @@ app.layout = html.Div(
     children=[
         html.Div(
             className="row",
+            style={
+                "height": "100%",
+            },
             children=[
                 html.Div(
                     id="main_col_1",
@@ -112,7 +164,7 @@ app.layout = html.Div(
                     style={
                         "height": "100%",
                         'display': 'inline-block', 
-                        'margin-top': 10,
+                        'margin-top': 4,
                         'margin-right': 10,
                         'margin-buttom': 10,
                         'margin-left': 10,
@@ -197,10 +249,10 @@ def update_global_map(json_df):
         Input('state_top_group_df', 'children'),
         Input('state_top_group', 'children'),
         Input('state_selection_record', 'children'),
+        Input('trending_line_radio', 'value'),
     ],
 )
-def update_trending_line(json_df, json_top_group, json_selection_record):
-    isCasualty=True
+def update_trending_line(json_df, json_top_group, json_selection_record, isCasualty):
     df = pd.read_json(json_df, orient='split')
     top_group = pd.read_json(json_top_group, orient='split')
 
@@ -226,12 +278,13 @@ def update_trending_line(json_df, json_top_group, json_selection_record):
         tmp = tmp.sort_values(by=['iyear'])
         year_sum_df = pd.concat([year_sum_df, tmp])
 
+    year_sum_df = year_sum_df.reset_index()
+
     if isCasualty:
         y_label = "Casualities"
     else:
         y_label = "Number of Attacks"
 
-    
     if json_selection_record is None:
         return utils.get_trending_line(year_sum_df, y_label, component_theme)
     else:
@@ -272,10 +325,11 @@ def update_horizontal_bar(json_top_group, json_selection_record):
 )
 def show_summary(hover_data):
     if hover_data:
+        group_name = hover_data['points'][0]["hovertext"] + ":\n\n"
         summary = hover_data['points'][0]['customdata'][0]
         summary = summary.replace(": ", ":\n")
         summary = summary.replace(". ", ".\n")
-        return summary
+        return [group_name, summary]
     else:
         return ""
 
@@ -286,7 +340,7 @@ def show_summary(hover_data):
     ],
     State('state_selection_record', 'children'),
 )
-def update_seleted_groups(selected_group, json_selection_record):
+def update_seleted_groups_in_legend(selected_group, json_selection_record):
     if selected_group is None:
         return
     if json_selection_record:
@@ -296,6 +350,67 @@ def update_seleted_groups(selected_group, json_selection_record):
     selection_record[selected_group[1][0]] = selected_group[0]['visible'][0]
 
     return json.dumps({ "record": selection_record })
+
+@app.callback(
+    Output('selected_groups_scatter_plot', 'figure'),
+    [
+        Input('state_top_group_list', 'children'),
+        Input('global_map', 'clickData'),
+        Input('global_map', 'selectedData'),
+    ],
+)
+def update_seleted_groups_scatter_plot(json_top_group_list, click_data, selected_data):
+    # blank df
+    df = pd.DataFrame(
+        {"nhostkid": [0], "nreleased": [0], "ransompaid": [0]}
+    )
+    point_data = [[], [], []]
+
+    for points in [click_data, selected_data]:
+        if points and points['points']:
+            for point in points['points']:
+                if point['customdata'][1] and point['customdata'][2]:
+                    point_data[0].append(point['customdata'][1])
+                    point_data[1].append(point['customdata'][2])
+                    point_data[2].append(point['customdata'][3])
+
+            df = df.append(
+                pd.DataFrame(
+                    {
+                        "nhostkid": point_data[0],
+                        "nreleased": point_data[1],
+                        "ransompaid": point_data[2],
+                    }
+                ),
+                ignore_index=True
+            )
+            point_data = [[], [], []]
+
+    print(df)
+    return utils.selected_scatter_plot(df, component_theme)
+
+@app.callback(
+    Output('word_cloud_image', 'src'),
+    [
+        Input('word_cloud_image', 'id'),
+        Input('global_map', 'hoverData'),
+    ]
+)
+def update_word_cloud(id, hover_data):
+    # https://stackoverflow.com/questions/58907867/how-to-show-wordcloud-image-on-dash-web-application
+    img = BytesIO()
+
+    if hover_data:
+        summary = hover_data['points'][0]['customdata'][0]
+
+        for meanless in MEANLESSLIST:
+            summary = summary.replace(meanless, "")
+    else:
+        summary = "Please-Hover-on-Map"
+
+    utils.make_word_cloud_image(summary).save(img, format='PNG')
+    
+    return 'data:image/png;base64,{}'.format(base64.b64encode(img.getvalue()).decode())
 
 
 
