@@ -21,10 +21,6 @@ def range_slider(id, data, component_theme):
             step=None
         ),
         style={
-            'width': '79%', 
-            'padding': "0px 0px 0px 0px", 
-            'margin-left': 10,
-            'margin-right': 10,
             'background-color': component_theme['bg_color'], 
             'color': component_theme['text_color']
         }
@@ -35,12 +31,11 @@ def markdown(id, text, component_theme):
     return dcc.Markdown(
         id=id,
         children=text,
+        dedent=True,
         style={
+            # 'width': "100px",
             'display': 'inline-block', 
-            'width': '29%', 
             'padding': "0px 0px 0px 0px", 
-            'margin-left': 10,
-            'margin-right': 10,
             'background-color': component_theme['bg_color'], 
             'color': component_theme['text_color']
         }

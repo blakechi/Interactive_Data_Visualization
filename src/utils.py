@@ -119,7 +119,7 @@ def get_trending_line(df, y_label, component_theme):
         showgrid=False,
     )
     fig.update_layout(
-        margin={'l': 5, 'r': 0, 't': 0, 'b': 0},
+        margin={'l': 0, 'r': 0, 't': 0, 'b': 0},
         plot_bgcolor=component_theme["bg_color"],
         paper_bgcolor=component_theme["bg_color"],
         font={"color": component_theme["text_color"]},
@@ -157,7 +157,7 @@ def get_horizontal_bar(df, component_theme):
         title="K / W")
     fig.update_yaxes(matches=None, showticklabels=False, visible=False)
     fig.update_layout(
-        margin={'l': 5, 'r': 0, 't': 0, 'b': 52},
+        margin={'l': 10, 'r': 0, 't': 0, 'b': 52},
         bargap=0.1,
         bargroupgap=0.1,
         plot_bgcolor=component_theme["bg_color"],

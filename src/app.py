@@ -45,15 +45,26 @@ app = dash.Dash(
 
 main_col_1_layout = [
     html.Div(
-        dcc.Graph(id='global_map'),
+        children=[
+            dcc.Graph(id='global_map'),
+            # components.markdown("summary", "test", component_theme)
+        ],
         style={
-            'width': '79%', 
-            'display': 'inline-block', 
-            'padding': '10px 10px 6px 10px',
-        }
+            # 'width': '79%', 
+            # 'padding': '10px 10px 6px 10px',
+            # 'display': 'inline-block', 
+            'margin-buttom': 0,
+
+        },
     ),
-    components.range_slider('year_slider', df['iyear'], component_theme),
     html.Div(
+        components.range_slider('year_slider', df['iyear'], component_theme),
+    ),
+    html.Div(
+        id='buttom_row',
+        style={
+            'margin-top': 20,
+        },
         children=[
             html.Div(
                 id='trending_line_container',
@@ -63,14 +74,9 @@ main_col_1_layout = [
                         config={ 'displayModeBar': False }
                     )
                 ],
-                className='column',
                 style={
                     'display': 'inline-block', 
-                    'padding': "10px 0px 10px 10px",
-                    'width': '74%', 
-                    'height': '10%', 
-                    "background-color": "black",
-                    "color": "white"
+                    'width': '91%',
                 }
             ),
             html.Div(
@@ -81,22 +87,17 @@ main_col_1_layout = [
                         config={ 'displayModeBar': False }
                     )
                 ], 
-                className='column',
                 style={
                     'display': 'inline-block', 
-                    'padding': "10px 10px 10px 0px",
-                    'width': '5%', 
-                    'height': '10%', 
+                    'width': '9%',
                 },
             ),
-        ],
-        id='buttom_row',
-        className='row'
+        ]
     )
 ]
 
 main_col_2_layout = [
-    components.markdown("summary", "", component_theme),
+    components.markdown("summary", "test", component_theme),
 ]
 
 app.layout = html.Div(
@@ -107,20 +108,28 @@ app.layout = html.Div(
         'padding': '0px'},
     children=[
         html.Div(
-            id="main_row",
-            className="row",
-            children=[
-                html.Div(
-                    id="main_col_1",
-                    className="column",
-                    children=main_col_1_layout
-                ),
-                html.Div(
-                    id="main_col_2",
-                    className="column",
-                    children=main_col_2_layout
-                )
-            ]
+            id="main_col_1",
+            children=main_col_1_layout,
+            style={
+                'display': 'inline-block', 
+                "width": "75%",
+                'margin-top': 10,
+                'margin-right': 10,
+                'margin-buttom': 10,
+                'margin-left': 10,
+            }
+        ),
+        html.Div(
+            id="main_col_2",
+            children=main_col_2_layout,
+            style={
+                'display': 'inline-block', 
+                "width": "20%",
+                'margin-top': 10,
+                'margin-right': 10,
+                'margin-buttom': 10,
+                # 'margin-left': 10,
+            }
         ),
         html.Br(),
         html.Div(
