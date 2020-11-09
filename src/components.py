@@ -1,6 +1,5 @@
 import dash_core_components as dcc
 import dash_html_components as html
-import dash_bootstrap_components as dbc
 import pandas as pd
 
 
@@ -27,15 +26,26 @@ def range_slider(id, data, component_theme):
     )
     return 
 
-def markdown(id, text, component_theme):
-    return dcc.Markdown(
+def summary_window(id, text, component_theme):
+    return html.Div(
         id=id,
-        children=text,
-        dedent=True,
+        children=[
+            html.H5(
+                children=["Summary"]),
+            html.Pre(
+                id='group_summary', 
+                style={
+                    "height": "200px",
+                    "border": f"5px solid {component_theme['bg_color']}",
+                    'background-color': "black", 
+                    'color': component_theme['text_color'],
+                    'overflowX': 'auto',
+                    'overflowY': 'scroll',
+                }
+            ),
+        ],
         style={
-            # 'width': "100px",
-            'display': 'inline-block', 
-            'padding': "0px 0px 0px 0px", 
+            "padding": "0",
             'background-color': component_theme['bg_color'], 
             'color': component_theme['text_color']
         }

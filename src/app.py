@@ -3,7 +3,6 @@ import json
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
-import dash_bootstrap_components as dbc
 import dash_daq as daq
 from dash.dependencies import Input, Output, State
 import pandas as pd
@@ -34,32 +33,16 @@ component_theme = {
 }
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
-app = dash.Dash(
-    __name__, 
-    external_stylesheets=[external_stylesheets],
-    meta_tags=[
-        {"name": "viewport", "content": "width=device-width, initial-scale=1.0"}
-    ]
-)
-# app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, external_stylesheets])
+app = dash.Dash(__name__, external_stylesheets=external_stylesheets) 
 
 main_col_1_layout = [
     html.Div(
         children=[
             dcc.Graph(id='global_map'),
             # components.markdown("summary", "test", component_theme)
-        ],
-        style={
-            # 'width': '79%', 
-            # 'padding': '10px 10px 6px 10px',
-            # 'display': 'inline-block', 
-            'margin-buttom': 0,
-
-        },
+        ]
     ),
-    html.Div(
-        components.range_slider('year_slider', df['iyear'], component_theme),
-    ),
+    components.range_slider('year_slider', df['iyear'], component_theme),
     html.Div(
         id='buttom_row',
         style={
@@ -97,7 +80,7 @@ main_col_1_layout = [
 ]
 
 main_col_2_layout = [
-    components.markdown("summary", "test", component_theme),
+    components.summary_window("summary", "test", component_theme),
 ]
 
 app.layout = html.Div(
@@ -105,31 +88,37 @@ app.layout = html.Div(
     style={
         'background-color': 'black',
         'color': 'white',
-        'padding': '0px'},
+    },
     children=[
         html.Div(
-            id="main_col_1",
-            children=main_col_1_layout,
-            style={
-                'display': 'inline-block', 
-                "width": "75%",
-                'margin-top': 10,
-                'margin-right': 10,
-                'margin-buttom': 10,
-                'margin-left': 10,
-            }
-        ),
-        html.Div(
-            id="main_col_2",
-            children=main_col_2_layout,
-            style={
-                'display': 'inline-block', 
-                "width": "20%",
-                'margin-top': 10,
-                'margin-right': 10,
-                'margin-buttom': 10,
-                # 'margin-left': 10,
-            }
+            className="row",
+            children=[
+                html.Div(
+                    id="main_col_1",
+                    className="nine columns",
+                    children=main_col_1_layout,
+                    style={
+                        'display': 'inline-block',
+                        'margin-top': 10,
+                        'margin-right': 10,
+                        'margin-buttom': 10,
+                        'margin-left': 10,
+                    }
+                ),
+                html.Div(
+                    id="main_col_2",
+                    className="three columns",
+                    children=main_col_2_layout,
+                    style={
+                        "height": "100%",
+                        'display': 'inline-block', 
+                        'margin-top': 10,
+                        'margin-right': 10,
+                        'margin-buttom': 10,
+                        'margin-left': 10,
+                    }
+                ),
+            ]
         ),
         html.Br(),
         html.Div(
@@ -142,6 +131,10 @@ app.layout = html.Div(
         ),
         html.Div(
             id='state_top_group', 
+            style={ 'display': 'none' }
+        ),
+        html.Div(
+            id='state_selection_record', 
             style={ 'display': 'none' }
         )
     ]
@@ -202,10 +195,12 @@ def update_global_map(json_df):
     Output('trending_line', 'figure'),
     [
         Input('state_top_group_df', 'children'),
-        Input('state_top_group', 'children')
-    ]
+        Input('state_top_group', 'children'),
+        Input('state_selection_record', 'children'),
+    ],
 )
-def update_trending_line(json_df, json_top_group, isCasualty=True):
+def update_trending_line(json_df, json_top_group, json_selection_record):
+    isCasualty=True
     df = pd.read_json(json_df, orient='split')
     top_group = pd.read_json(json_top_group, orient='split')
 
@@ -236,18 +231,73 @@ def update_trending_line(json_df, json_top_group, isCasualty=True):
     else:
         y_label = "Number of Attacks"
 
-    return utils.get_trending_line(year_sum_df, y_label, component_theme)
+    
+    if json_selection_record is None:
+        return utils.get_trending_line(year_sum_df, y_label, component_theme)
+    else:
+        selection_record = json.loads(json_selection_record)["record"]
+        return utils.get_trending_line(
+            year_sum_df, 
+            y_label, 
+            component_theme,
+            selection_record=selection_record,
+            top_group_list=top_group['gname'] 
+        )
 
 @app.callback(
     Output('horizontal_bar', 'figure'),
     [
-        Input('state_top_group', 'children')
-    ]
+        Input('state_top_group', 'children'),
+        Input('state_selection_record', 'children')
+    ],
 )
-def update_horizontal_bar(json_top_group):
+def update_horizontal_bar(json_top_group, json_selection_record):
     top_group = pd.read_json(json_top_group, orient='split')
 
-    return utils.get_horizontal_bar(top_group, component_theme)
+    if json_selection_record is None:
+        return utils.get_horizontal_bar(top_group, component_theme)
+    else:
+        selection_record = json.loads(json_selection_record)["record"]
+        return utils.get_horizontal_bar(
+            top_group,
+            component_theme,
+            selection_record=selection_record,
+        )
+
+@app.callback(
+    Output('group_summary', 'children'),
+    [
+        Input('global_map', 'hoverData'),
+    ]
+)
+def show_summary(hover_data):
+    if hover_data:
+        summary = hover_data['points'][0]['customdata'][0]
+        summary = summary.replace(": ", ":\n")
+        summary = summary.replace(". ", ".\n")
+        return summary
+    else:
+        return ""
+
+@app.callback(
+    Output('state_selection_record', 'children'),
+    [
+        Input('global_map', 'restyleData'),
+    ],
+    State('state_selection_record', 'children'),
+)
+def update_seleted_groups(selected_group, json_selection_record):
+    if selected_group is None:
+        return
+    if json_selection_record:
+        selection_record = json.loads(json_selection_record)["record"]
+    else:
+        selection_record = [True]*NUMTOPGROUP
+    selection_record[selected_group[1][0]] = selected_group[0]['visible'][0]
+
+    return json.dumps({ "record": selection_record })
+
+
 
 if __name__ == '__main__':
     app.run_server(debug=True)

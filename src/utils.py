@@ -58,15 +58,15 @@ def get_map_fig(df, component_theme):
             "weaptype1_txt": "Weapon",
             "attacktype1_txt": "Attack Type",
         },
-        # projection="natural earth",
+        custom_data=['summary'],
         scope="world",
         height=500,
         title=None
     )
     fig.update_layout(
         margin={'l': 0, 'r': 0, 't': 0, 'b': 0},
-        plot_bgcolor="black",
-        paper_bgcolor="black",
+        plot_bgcolor=component_theme['bg_color'],
+        paper_bgcolor=component_theme['bg_color'],
         font={ "color": component_theme["text_color"] },
         hoverlabel={
             'bgcolor': component_theme['bg_color']
@@ -92,7 +92,7 @@ def get_map_fig(df, component_theme):
 
     return fig
 
-def get_trending_line(df, y_label, component_theme):
+def get_trending_line(df, y_label, component_theme, **kwargs):
     fig = px.line(
         df, x='iyear', y='total', 
         color='gname', 
@@ -136,9 +136,20 @@ def get_trending_line(df, y_label, component_theme):
         }
     )
 
+    if "selection_record" in kwargs.keys():
+        group_list = kwargs["top_group_list"]
+        hidden_group = []
+        for idx, selection in enumerate(kwargs["selection_record"]):
+            if selection == "legendonly":
+                hidden_group.append(group_list[idx])
+                
+        fig.for_each_trace(
+            lambda trace: trace.update(visible="legendonly") if trace.name in hidden_group else ()
+        )
+
     return fig
 
-def get_horizontal_bar(df, component_theme):
+def get_horizontal_bar(df, component_theme, **kwargs):
     fig = px.bar(
         df, 
         x=['nkill', 'nwound'], 
@@ -168,5 +179,16 @@ def get_horizontal_bar(df, component_theme):
         },
         showlegend=False
     )
+
+    if "selection_record" in kwargs.keys():
+        group_list = df['gname']
+        hidden_group = []
+        for idx, selection in enumerate(kwargs["selection_record"]):
+            if selection == "legendonly":
+                hidden_group.append(group_list[idx])
+                
+        fig.for_each_trace(
+            lambda trace: trace.update(visible="legendonly") if trace.name in hidden_group else ()
+        )
 
     return fig
