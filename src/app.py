@@ -17,10 +17,10 @@ import utils
 NUMTOPGROUP = 5
 NUMCASUALITIES = 30
 MEANLESSLIST = [
-    "is", "are", "was", "were", "a", "an", "the",
-    "Is", "Are", "Was", "Were", "A", "An", "The",
-    "in", "at", "on", "of", "for", "to",
-    "In", "At", "On", "Of", "For", "To",
+    "is ", "are", "was", "were", "a ", "an ", "the",
+    "Is ", "Are", "Was", "Were", "A ", "An ", "The",
+    "in ", "at ", "on ", "of ", "for ", "to ",
+    "In ", "At ", "On ", "Of ", "For ", "To ",
     ":", ","
 ]
 
@@ -366,7 +366,6 @@ def update_seleted_attacks_bar(json_df, click_data, selected_data):
     for points in [click_data, selected_data]:
         if points and points['points']:
             for point in points['points']:
-                print(point['customdata'])
                 point_data[0].append(point['customdata'][1])
                 point_data[1].append(point['customdata'][2])
 
