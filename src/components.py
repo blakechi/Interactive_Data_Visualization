@@ -38,7 +38,7 @@ def summary_window(id, text, component_theme):
             html.Pre(
                 id='group_summary', 
                 style={
-                    "height": "200px",
+                    "height": "150px",
                     "border": f"5px solid {component_theme['bg_color']}",
                     'background-color': "black", 
                     'color': component_theme['text_color'],

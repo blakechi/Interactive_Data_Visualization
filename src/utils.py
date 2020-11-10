@@ -5,6 +5,10 @@ import plotly.graph_objects as go
 import pandas as pd
 from wordcloud import WordCloud
 
+
+IRREGULAR_NUM = -99
+
+
 def get_cleaned_dataset():
     df = pd.read_csv(
         "data/globalterrorismdb_0718dist.csv", 
@@ -16,7 +20,7 @@ def get_cleaned_dataset():
             'iyear', 'country_txt', 'gname', 'longitude', 'latitude', 
             'nkill', 'nwound', 'success', 'weaptype1_txt', 
             'nhostkid', 'nreleased', 'ransomamt', 'ransompaid', 
-            'nperps', 'attacktype1_txt', 'summary'
+            'nperps', 'attacktype1_txt', 'summary', 'region_txt'
         ]
     ]
     df = df.loc[df['gname'] != "Unknown"]
@@ -28,6 +32,8 @@ def get_cleaned_dataset():
     df = df.loc[~df['nwound'].isna()]
     df['nkillwound'] = df['nkill'] + df['nwound']
     df['marker_size'] = 10*df['nkillwound'].pow(1./2)
+    # df['ransomamt'] = df['ransomamt'].replace(IRREGULAR_NUM, 0)
+    # df['ransompaid'] = df['ransompaid'].replace(IRREGULAR_NUM, 0)
     df = df.reset_index()
 
     return df
@@ -62,9 +68,7 @@ def get_map_fig(df, component_theme):
         },
         custom_data=[
             "summary",
-            "nhostkid",
-            "nreleased",
-            "ransompaid"
+            "region_txt"
         ],
         scope="world",
         height=500,
@@ -202,24 +206,48 @@ def get_horizontal_bar(df, component_theme, **kwargs):
 
     return fig
 
-def selected_scatter_plot(df, component_theme, **kwargs):
-    fig = px.scatter(
+def selected_attacks_bar(df, component_theme):
+    fig = px.bar(
         df, 
-        x="nhostkid", 
-        y="nreleased", 
-        size=df["ransompaid"],
-        height=200
+        x="region_txt", 
+        y="attack_count",
+        color="region_txt",
+        color_discrete_sequence=px.colors.qualitative.Pastel1,
+        log_y=True,
+        barmode='overlay',
+        height=253
+    )
+    # fig.add_trace(
+    #     px.bar(
+    #         df, 
+    #         x="region_txt", 
+    #         y="selected_attack_count",
+    #         color="region_txt",
+    #         color_discrete_sequence=px.colors.qualitative.Set1,
+    #         barmode='overlay',
+    #         width=11
+    #     ).data[0]
+    # )
+    fig.add_bar(
+        x=df["region_txt"],
+        y=df["selected_attack_count"],
+        base='overlay',
+        hovertext="",
+        # color_discrete_sequence=px.colors.qualitative.Set1,
     )
     fig.update_traces(
         # selectedpoints=selectedpoints, 
-        mode='markers',
-        marker={ 'color': '#0066ff' },
-        hovertemplate=None,
+        # mode='markers',
+        # marker={ 'color': '#0066ff' },
+        hovertemplate='%{y}<extra></extra>',
     )
-
     fig.update_xaxes(
-        title="Number of Hosted Kids", 
+        title="", 
         zeroline=False,
+        # tickangle=-45,
+        # tickfont={
+        #     "size": 10
+        # },
         showticklabels=False, 
         showgrid=False,
         showline=True,
@@ -229,9 +257,9 @@ def selected_scatter_plot(df, component_theme, **kwargs):
         matches=None
     )
     fig.update_yaxes(
-        title="Number of Released Kids", 
+        title="Number of Attacks (log)", 
         zeroline=False,
-        showticklabels=False, 
+        showticklabels=False,  
         showgrid=False,
         showline=True,
         linewidth=1, 
@@ -239,12 +267,12 @@ def selected_scatter_plot(df, component_theme, **kwargs):
         visible=True, 
     )
     fig.update_layout(
-        margin={'l': 10, 'r': 10, 't': 10, 'b': 10},
+        margin={'l': 0, 'r': 30, 't': 20, 'b': 40},
         plot_bgcolor=component_theme["bg_color"],
         paper_bgcolor=component_theme["bg_color"],
         font={"color": component_theme["text_color"]},
         hovermode="x",
-        hoverlabel={'font_size': 12},
+        # hoverlabel={'font_size': 6},
         showlegend=False,  
     )
 

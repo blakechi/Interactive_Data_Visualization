@@ -113,21 +113,18 @@ main_col_2_layout = [
     html.Div(
         id='summary_container',
         children=[
-        components.summary_window("summary", "test", component_theme),
-        components.word_cloud("word_cloud_image", component_theme),
+            components.summary_window("summary", "test", component_theme),
+            components.word_cloud("word_cloud_image", component_theme),
         ],
-        style={
-            "height": "539px"
-        }
     ),
     html.Div(
-        id='selected_groups_scatter_plot_container',
+        id='selected_attacks_bar_container',
         children=dcc.Graph(
-            id='selected_groups_scatter_plot',
+            id='selected_attacks_bar',
             config={ 'displayModeBar': False }
         ),
         style={
-            "margin-top": "21px",    # ?????
+            "margin-top": "20px",    # ?????
         }
     ),
 ]
@@ -352,42 +349,56 @@ def update_seleted_groups_in_legend(selected_group, json_selection_record):
     return json.dumps({ "record": selection_record })
 
 @app.callback(
-    Output('selected_groups_scatter_plot', 'figure'),
+    Output('selected_attacks_bar', 'figure'),
     [
-        Input('state_top_group_list', 'children'),
+        Input('state_top_group_df', 'children'),
         Input('global_map', 'clickData'),
         Input('global_map', 'selectedData'),
     ],
 )
-def update_seleted_groups_scatter_plot(json_top_group_list, click_data, selected_data):
+def update_seleted_attacks_bar(json_df, click_data, selected_data):
     # blank df
-    df = pd.DataFrame(
-        {"nhostkid": [0], "nreleased": [0], "ransompaid": [0]}
+    df_selected = pd.DataFrame(
+        { "region_txt": [""], "nkillwound": [0] }
     )
-    point_data = [[], [], []]
+    point_data = [[], []]
 
     for points in [click_data, selected_data]:
         if points and points['points']:
             for point in points['points']:
-                if point['customdata'][1] and point['customdata'][2]:
-                    point_data[0].append(point['customdata'][1])
-                    point_data[1].append(point['customdata'][2])
-                    point_data[2].append(point['customdata'][3])
+                print(point['customdata'])
+                point_data[0].append(point['customdata'][1])
+                point_data[1].append(point['customdata'][2])
 
-            df = df.append(
+            df_selected = df_selected.append(
                 pd.DataFrame(
                     {
-                        "nhostkid": point_data[0],
-                        "nreleased": point_data[1],
-                        "ransompaid": point_data[2],
+                        "region_txt": point_data[0],
+                        "nkillwound": point_data[1],
                     }
                 ),
                 ignore_index=True
             )
-            point_data = [[], [], []]
+            point_data = [[], []]
 
-    print(df)
-    return utils.selected_scatter_plot(df, component_theme)
+    df_selected = df_selected.groupby(['region_txt']).count()
+    df_selected["region_txt"] = df_selected.index
+    df_selected = df_selected.rename(columns={"nkillwound": "attack_count"})
+
+    df = pd.read_json(json_df, orient='split')
+    df = df[['region_txt', 'nkillwound']].groupby(['region_txt']).count()
+    df["region_txt"] = df.index
+    df = df.rename(columns={"nkillwound": "attack_count"})
+
+    df["selected_attack_count"] = [0]*df.index.shape[0]
+    for idx in range(df_selected.index.shape[0]):
+        count, region = df_selected.iloc[idx, :]
+        df.iloc[(df.index == region), -1] = count
+
+    return utils.selected_attacks_bar(
+        df,
+        component_theme, 
+    )
 
 @app.callback(
     Output('word_cloud_image', 'src'),
@@ -411,7 +422,6 @@ def update_word_cloud(id, hover_data):
     utils.make_word_cloud_image(summary).save(img, format='PNG')
     
     return 'data:image/png;base64,{}'.format(base64.b64encode(img.getvalue()).decode())
-
 
 
 if __name__ == '__main__':
