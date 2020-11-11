@@ -27,6 +27,7 @@ df = utils.get_cleaned_dataset()
 component_theme = {
     "bg_color": "rgba(64, 64, 64, 255)",
     "legend_bg_color": "rgba(64, 64, 64, 0)",
+    "legend_bg_color_half": "rgba(64, 64, 64, 0.5)",
     "text_color": "white",
     "bar": {
         "colors": [

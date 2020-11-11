@@ -84,7 +84,7 @@ def get_map_fig(df, component_theme):
         },
         legend={
             'title': "",
-            'bgcolor': component_theme['legend_bg_color'],
+            'bgcolor': component_theme['legend_bg_color_half'],
             'traceorder': "normal",    
             'yanchor': "top",
             'y': 0.99,
