@@ -5,20 +5,18 @@ from io import BytesIO
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
-import dash_daq as daq
 from dash.dependencies import Input, Output, State
 import pandas as pd
 import plotly.express as px
 
-import components
-import utils
+from src import components, utils
 
 
 NUMTOPGROUP = 5
 NUMCASUALITIES = 30
 MEANLESSLIST = [
-    "is ", "are", "was", "were", "a ", "an ", "the",
-    "Is ", "Are", "Was", "Were", "A ", "An ", "The",
+    "is ", "are", "was", "were", "a ", "an ", "the ", "and ",
+    "Is ", "Are", "Was", "Were", "A ", "An ", "The", "And",
     "in ", "at ", "on ", "of ", "for ", "to ",
     "In ", "At ", "On ", "Of ", "For ", "To ",
     ":", ","
@@ -41,14 +39,120 @@ component_theme = {
     }
 }
 
-external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+external_stylesheets = [
+    'https://codepen.io/chriddyp/pen/bWLwgP.css',
+]
+
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets) 
+
+nav_bar = html.Nav(
+    className='menu',
+    style={
+        # "background-color": "#6699ff",
+        "background-color": "#3366cc",
+        "height": "10%"
+    },
+    children=[
+        html.Ul(
+            children=[
+                html.Li(
+                    className='',
+                    children=[
+                        html.B(
+                            "Global Terrorism Database - Top 5 Group",
+                            style={
+                                "font-size": "30px",
+                            }
+                        )
+                    ],
+                    style={
+                        "display": "inline-block",
+                        "vertical-align": "middle",
+                        "padding-top": "10px",
+                        "padding-left": "20px",
+                    }
+                ),
+                html.Li(
+                    className='',
+                    children=[
+                        html.A(
+                            id='github_link',
+                            children=[
+                                html.Img(
+                                    id="github_img",
+                                    className="fit-picture",
+                                    src=app.get_asset_url("./github.png"),
+                                    alt="Github",
+                                    style={
+                                        "height": "30px",
+                                        "width": "30px",
+                                        "vertical-align": "middle",
+                                    }
+                                )
+                            ],
+                            href='https://github.com/blakechi/Interactive_Data_Visualization',
+                            style={
+                                "color": "white",
+                                "text-decoration": "none",
+                                "vertical-align": "middle",
+                                # "display": "table-cell",
+                                # "vertical-align": "middle",
+                            },
+                        )
+                    ],
+                    style={
+                        "display": "inline-block",
+                        "vertical-align": "middle",
+                        "float": "right",
+                        "padding-top": "20px",
+                        "padding-right": "20px",
+                    }
+                ),
+                html.Li(
+                    className='',
+                    children=[
+                        html.A(
+                            id='dataset_link',
+                            children=[
+                                html.Img(
+                                    id="dataset_img",
+                                    className="fit-picture",
+                                    src=app.get_asset_url("./dataset.png"),
+                                    alt="Dataset",
+                                    style={
+                                        "height": "30px",
+                                        "width": "30px",
+                                        "vertical-align": "middle",
+                                    }
+                                )
+                            ],
+                            href='https://www.kaggle.com/START-UMD/gtd',
+                            style={
+                                "color": "white",
+                                "text-decoration": "none",
+                                "vertical-align": "middle",
+                                # "display": "table-cell",
+                                # "vertical-align": "middle",
+                            },
+                        )
+                    ],
+                    style={
+                        "display": "inline-block",
+                        "vertical-align": "middle",
+                        "padding-top": "20px",
+                        "padding-right": "20px",
+                        "float": "right",
+                    }
+                ),
+            ]
+        )
+    ]
+)
 
 main_col_1_layout = [
     html.Div(
         children=[
             dcc.Graph(id='global_map'),
-            # components.markdown("summary", "test", component_theme)
         ]
     ),
     components.range_slider('year_slider', df['iyear'], component_theme),
@@ -136,6 +240,7 @@ app.layout = html.Div(
         'color': 'white',
     },
     children=[
+        nav_bar,
         html.Div(
             className="row",
             style={
@@ -424,4 +529,5 @@ def update_word_cloud(id, hover_data):
 
 
 if __name__ == '__main__':
+    
     app.run_server(debug=True)
