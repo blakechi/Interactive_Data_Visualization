@@ -229,7 +229,7 @@ main_col_2_layout = [
             config={ 'displayModeBar': False }
         ),
         style={
-            "margin-top": "20px",    # ?????
+            "margin-top": "20px",
         }
     ),
 ]
