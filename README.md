@@ -8,7 +8,7 @@
 
 The dataset - **Global Terrorism Database** is from [kaggle](https://www.kaggle.com/START-UMD/gtd).
 
-# Plots
+## Plots
 
 ### 1. Global Map with Year Range Slider
 
@@ -28,7 +28,10 @@ It shows the summary of a given event when users hover on one in Global Map and 
 ### 4. Bar Chart
 
 Provides the number of attacks distributed in continents when users select a group of events in Global Map. The exact number shown when users hover on the highlighted bar.
-![](./github_assets/bar_chart.png)
+
+<p align="center">
+  <img src="./github_assets/bar_chart.png?raw=true" width=300/>
+</p>
 
 ## Usage
 
