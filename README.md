@@ -13,12 +13,19 @@ The dataset - **Global Terrorism Database** is from [kaggle](https://www.kaggle.
 ### 1. Global Map with Year Range Slider
 
 A global map with dots represent each event. Different colors for dots to indicate groups listed in the legend. Users can panning, zooming in/out, hovering, and box/lasso select on the map. The legend can hide/reveal specific groups' events by clicking the group name. The year range slider constraints the events to be rendered in a given year range. Some of the interactions above lead to related changes on other plots.
-![](./github_assets/global_map.png)
+![]()
+
+<p align="center">
+  <img src="./github_assets/global_map.png?raw=true" width=600/>
+</p>
 
 ### 2. Trending Lines with Horizontal Bar Chart
 
 The trending lines show the number of attachs or casualites across years. When hover on trending lines, the exact number will reveal. Same as the lengend in Global Map, users can hide/reveal groups as they want. The horizontal bar shows the number of kills (darker bars) and wounds (lighter bars) with corresponding group color.
-![](./github_assets/trending_line.png)
+
+<p align="center">
+  <img src="./github_assets/trending_line.png?raw=true" width=600/>
+</p>
 
 ### 3. Summary and Word Cloud
 
