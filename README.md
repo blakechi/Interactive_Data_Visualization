@@ -23,7 +23,10 @@ The trending lines show the number of attachs or casualites across years. When h
 ### 3. Summary and Word Cloud
 
 It shows the summary of a given event when users hover on one in Global Map and the corresponding word cloud is generated as well.
-![](./github_assets/word_cloud.png)
+
+<p align="center">
+  <img src="./github_assets/word_cloud.png?raw=true" width=300/>
+</p>
 
 ### 4. Bar Chart
 
