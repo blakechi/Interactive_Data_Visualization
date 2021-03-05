@@ -51,7 +51,9 @@ Provides the number of attacks distributed in continents when users select a gro
    ```
 2. Download the dataset from [kaggle](https://www.kaggle.com/START-UMD/gtd), and then put it under the folder `data` .
 3. Under the project folder, install libraries and execuate:
-   ```
-   pip3 install -r requirements.txt
-   python3 app.py
+   ```console
+   python3 -m venv env
+   source env/bin/activate
+   pip install -r requirements.txt
+   python app.py
    ```
